@@ -94,21 +94,34 @@ function resetForm() {
   messageId.value = null;
 }
 
-  const fetchJSON = async (url) => {
-      const response = await fetch(`http://localhost:3000${url}`);
-      return response.json();
-  };
 
-  const fetchPostJSON = async (url, data) => {
-      const response = await fetch(`http://localhost:3000${url}`, {
-      method: "POST",
-      headers: {
-      "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-      });
-      return response;
-  };
+async function mySignature() {
+    return "1234567890";
+}
+
+async function fetchJSON(url) {
+    const response = await fetch(`http://localhost:3000${url}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Signature": await mySignature(),
+        },
+    });
+    return response.json();
+}
+
+async function fetchPostJSON(url, data) {
+    const response = await fetch(`http://localhost:3000${url}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Signature": await mySignature(),
+        },
+        body: JSON.stringify(data),
+    });
+    return response;//.json();
+}
+
 
 const submitForm = async () => {
   const sendAtDate = new Date(sendAt.value);
