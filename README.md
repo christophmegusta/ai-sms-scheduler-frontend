@@ -1,15 +1,21 @@
 # ai sms scheduler frontend
 
 ## setup
-`
+
+install and build
+```
 npm install
 npm run build
-`
+```
 
 or for development
-`
+```
 npm run dev
-`
+```
+open browser http://localhost:5173/
+
+remember to start main server from ai-sms-scheduler repo. see README.
+otherwise data cannot be loaded.
 
 
 ## Vue 3 + Vite
