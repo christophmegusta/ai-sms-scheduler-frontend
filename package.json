@@ -9,6 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@solana/wallet-adapter-wallets": "^0.19.16",
+    "@web3auth/sign-in-with-solana": "^1.0.0",
+    "bs58": "^5.0.0",
+    "sweetalert": "^2.1.2",
     "vue": "^3.2.47"
   },
   "devDependencies": {

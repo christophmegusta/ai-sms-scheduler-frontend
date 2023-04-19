@@ -1,6 +1,8 @@
 <template>
-  <div class="container mx-auto px-4">
-    <h1 class="text-3xl font-bold mb-4">SMS Scheduler</h1>
+  <Siws v-if="!token" :token="setToken"></Siws>
+
+  <div v-if="token" class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold mb-4">SMS Scheduler <button @click="logout()">Logout</button></h1>
 
     <form @submit.prevent="submitForm" @reset.prevent="resetForm" class="space-y-4">
       <div>
@@ -74,7 +76,9 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import Siws from "./components/Siws.vue";
 
+const token = ref(window.localStorage.token);
 const phone = ref("");
 const message = ref("");
 const sendAt = ref("");
@@ -83,6 +87,11 @@ const sendChance = ref(100);
 const recurrence = ref("once");
 const messageId = ref(null);
 const messages = ref([]);
+
+function setToken(t) {
+  token.value = t;
+  window.localStorage.token = t;
+}
 
 function resetForm() {
   phone.value = "";
@@ -95,31 +104,71 @@ function resetForm() {
 }
 
 
+async function solanaWalletSignMessage(message) {
+  const m = message || "Sign for SMS Scheduler";
+  if (window.solana && window.solana.isPhantom) {
+    const solana = window.solana;
+    const message = new TextEncoder().encode(m);
+    const signature = await solana.request({
+      method: "signMessage",
+      params: {
+        message,
+        display: "hex",
+      },
+    });
+    return signature;
+  } else {
+    alert("Please install Phantom wallet to use this app.");
+    return null;
+  }
+}
+
+async function connectPhantomWallet() {
+  if (window.solana && window.solana.isPhantom) {
+    const solana = window.solana;
+    const connected = await solana.connect();
+    if (connected) {
+      console.log("Connected to Phantom wallet");
+      console.log("Public key:", solana.publicKey.toString());
+    } else {
+      console.error("Failed to connect to Phantom wallet");
+    }
+  } else {
+    alert("Please install Phantom wallet to use this app.");
+  }
+}
+
 async function mySignature() {
-    return "1234567890";
+  return window.localStorage.token;
+}
+
+async function logout() {
+  window.localStorage.token = null;
+  delete window.localStorage["token"];
+  token.value = undefined;
 }
 
 async function fetchJSON(url) {
-    const response = await fetch(`http://localhost:3000${url}`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            "Signature": await mySignature(),
-        },
-    });
-    return response.json();
+  const response = await fetch(`http://localhost:3000${url}`, {
+    method: "GET",
+    headers: {
+      "Authorization": "Bearer " + await mySignature(),
+      "Content-Type": "application/json",
+    },
+  });
+  return response.json();
 }
 
 async function fetchPostJSON(url, data) {
-    const response = await fetch(`http://localhost:3000${url}`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Signature": await mySignature(),
-        },
-        body: JSON.stringify(data),
-    });
-    return response;//.json();
+  const response = await fetch(`http://localhost:3000${url}`, {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + await mySignature(),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  return response;
 }
 
 
@@ -142,7 +191,10 @@ const fetchScheduledMessages = async () => {
   messages.value = await fetchJSON("/messages");
 };
 
-onMounted(fetchScheduledMessages);
+onMounted(async () => {
+  fetchScheduledMessages();
+  token.value = window.localStorage.token;
+});
 
 const formatDate = (timestamp) => {
   const date = new Date(timestamp * 1000);
