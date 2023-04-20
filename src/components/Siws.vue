@@ -10,7 +10,7 @@ import {
   SlopeWalletAdapter,
   Coin98WalletAdapter,
 } from "@solana/wallet-adapter-wallets";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 const selectedWallet = ref();
 const allWallets = ref([
   new TorusWalletAdapter(),
@@ -26,14 +26,21 @@ const publicKey = ref("");
 const message = ref<string>();
 const signature = ref<string>();
 const showModal = ref(false);
+const token = ref("");
 
 const props = defineProps<{
   token: Function;
 }>();
 
+
+onMounted(() => {
+    token.value = window.localStorage.token;
+});
+
 function modalClick(item: any) {
   selectedWallet.value = item;
   showModal.value = false;
+  connectWallet();
 }
 function createSolanaMessage(address: string, statement: string) {
   const siws = new SIWS({
@@ -56,6 +63,10 @@ function connectWallet() {
     const wallet = selectedWallet.value;
     wallet.connect().then((resp: any) => {
       publicKey.value = wallet.publicKey?.toBase58() || "";
+    }).then(() => {
+      if (publicKey.value) {
+        signInWithSolana();
+      }
     });
   } catch (error) {
     console.log("User rejected the request." + error);
@@ -67,6 +78,9 @@ async function signInWithSolana() {
   const encodedMessage = new TextEncoder().encode(message);
   const signedMessage = await wallet.signMessage(encodedMessage);
   signature.value = base58.encode(signedMessage);
+
+  if(signature.value)
+    verifySignatureRemote();
 }
 async function verifySignature() {
   const siws = new SIWS(message.value || "");
@@ -98,10 +112,10 @@ async function verifySignatureRemote() {
     const data = await response.json();
 
     if (data.status === 'success') {
-      const token = data.token;
+      token.value = data.token;
       // Store the token in local storage or memory for future authenticated requests
-      localStorage.setItem('token', token);
-      props.token(token);
+      localStorage.setItem('token', token.value);
+      props.token(token.value);
       swal("Success", "Verified and authenticated", "success");
     } else {
       swal("Error", data.message, "error");
@@ -111,6 +125,12 @@ async function verifySignatureRemote() {
   }
 }
 
+function signout() {
+    localStorage.removeItem('token');
+    token.value = '';
+    props.token(token.value);
+    // swal("Success", "Signed out", "success");
+}
 
 function show() {
   showModal.value = true;
@@ -118,21 +138,32 @@ function show() {
 </script>
 
 <template>
-  <div id="siws" class="main">
+  <div v-if="token" id="siws" class="main">
+    <p class="sign center">Signout</p>
+    <br/>
+    <div>
+        <slot></slot>
+    </div>
+    <div>
+        <button v-if="token" class="web3auth" @click="signout()">Signout</button>
+    </div>
+  </div>
+
+  <div v-if="!token" id="siws" class="main">
     <p class="sign center">Sign in With Solana</p>
     <br/>
     <div>
-      <button class="web3auth" @click="show">{{ selectedWallet ? selectedWallet.name : "Select Wallet" }}</button>
-      <button class="web3auth" @click="connectWallet" :disabled="!selectedWallet">Connect wallet</button>
-      <button class="web3auth" @click="signInWithSolana">Sign-in with Solana</button>
+      <button v-if="!selectedWallet" class="web3auth" @click="show">{{ selectedWallet ? selectedWallet.name : "Select Wallet" }}</button>
+      <button v-if="selectedWallet && !publicKey" class="web3auth" @click="connectWallet" :disabled="!selectedWallet">Connect {{ selectedWallet.name }} wallet</button>
+      <button v-if="selectedWallet && publicKey && !signature" class="web3auth" @click="signInWithSolana">Sign-in with Solana</button>
 
       <span v-if="publicKey" id="postSignIn">
-        <p class="center">Public Key</p>
+        <!-- <p class="center">Public Key</p>
         <input class="publicKey" type="text" v-model="publicKey" />
         <p class="center">Signature</p>
-        <input class="signature" type="text" v-model="signature" />
-        <button class="web3auth" @click="verifySignature">Verify</button>
-        <button class="web3auth" @click="verifySignatureRemote">Verify Remote</button>
+        <input class="signature" type="text" v-model="signature" /> -->
+        <!-- <button v-if="selectedWallet && publicKey && signature" class="web3auth" @click="verifySignature">Verify</button> -->
+        <button v-if="selectedWallet && publicKey && signature" class="web3auth" @click="verifySignatureRemote">Verify Remote</button>
       </span>
 
       <p class="center">Created By</p>
