@@ -1,87 +1,13 @@
-<template>
-<div v-if="token" class="container mx-auto px-4">
-  <h1 class="text-3xl font-bold mb-4">SMS Scheduler</h1>
-
-  <form @submit.prevent="submitForm" @reset.prevent="resetForm" class="space-y-4">
-    <div>
-      <label class="block text-sm font-medium">Phone Number</label>
-      <input type="text" v-model="phone" placeholder="Phone Number" required class="block w-full border-gray-300 rounded-md" />
-    </div>
-    <div>
-      <label class="block text-sm font-medium">Message</label>
-      <textarea v-model="message" placeholder="Message" required class="block w-full border-gray-300 rounded-md"></textarea>
-    </div>
-    <div>
-      <label class="block text-sm font-medium">Send At</label>
-      <input type="datetime-local" v-model="sendAt" required class="block w-full border-gray-300 rounded-md" />
-    </div>
-    <div>
-      <label class="block text-sm font-medium">Time Window (in minutes)</label>
-      <input type="number" v-model.number="timeWindow" min="0" max="1440" step="1" required class="block w-full border-gray-300 rounded-md" />
-    </div>
-    <div>
-      <label class="block text-sm font-medium">Send Chance (in percent, 0 - 100)</label>
-      <input type="number" v-model.number="sendChance" min="0" max="100" step="1" required class="block w-full border-gray-300 rounded-md" />
-    </div>
-    <div>
-      <label class="block text-sm font-medium">Recurrence</label>
-      <select v-model="recurrence" required class="block w-full border-gray-300 rounded-md">
-        <option value="once">Once</option>
-        <option value="daily">Daily</option>
-        <option value="weekly">Weekly</option>
-        <option value="monthly">Monthly</option>
-        <option value="yearly">Yearly</option>
-      </select>
-    </div>
-    <button class="bg-blue-600 text-white px-4 py-2 rounded-md" type="submit">Save Message</button>
-    <button class="bg-red-500 text-white px-4 py-2 rounded-md" type="reset">Reset</button>
-  </form>
-
-  <h2 class="text-2xl font-bold mt-8 mb-4">Scheduled Messages</h2>
-  <table class="min-w-full divide-y divide-gray-200">
-    <thead>
-      <tr>
-        <th class="text-left text-sm font-medium">Phone Number</th>
-        <th class="text-left text-sm font-medium">Message</th>
-        <th class="text-left text-sm font-medium">Send At</th>
-        <th class="text-left text-sm font-medium">Time Window</th>
-        <th class="text-left text-sm font-medium">Send Chance</th>
-        <th class="text-left text-sm font-medium">Recurrence</th>
-        <th class="text-left text-sm font-medium">Actions</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-200">
-      <tr v-for="message in messages" :key="message.id">
-        <td class="py-2">{{ message.phone }}</td>
-        <td class="">{{ message.message }}</td>
-        <td>{{ formatDate(message.send_at) }}</td>
-        <td>{{ message.time_window }}</td>
-        <td>{{ message.send_chance }}%</td>
-        <td>
-          <label :class="['inline-block px-2 py-1 rounded-md', getLabelColor(message.recurrence)]">
-            {{ message.recurrence }} ({{ message.occurrences }})
-          </label>
-        </td>
-        <td>
-          <button class="bg-blue-500 text-white px-2 py-1 rounded-md mr-1" @click="editScheduledMessage(message)">Edit</button>
-          <button class="bg-red-500 text-white px-2 py-1 rounded-md" @click="deleteScheduledMessage(message.id)">Delete</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<Siws :token="setToken"></Siws>
-</template>
-
 <script setup>
 import { ref, onMounted } from "vue";
+import { fetchJSON, fetchPostJSON } from "./utility";
 import Siws from "./components/Siws.vue";
+
 
 const token = ref(window.localStorage.token);
 const phone = ref("");
 const message = ref("");
-const sendAt = ref("");
+const sendAt = ref(new Date().toISOString().slice(0, 16));
 const timeWindow = ref(0);
 const sendChance = ref(100);
 const recurrence = ref("once");
@@ -97,7 +23,7 @@ function setToken(t) {
 function resetForm() {
   phone.value = "";
   message.value = "";
-  sendAt.value = "";
+  sendAt.value = new Date().toISOString().slice(0, 16);
   timeWindow.value = 0;
   sendChance.value = 100;
   recurrence.value = "once";
@@ -139,32 +65,7 @@ async function connectPhantomWallet() {
   }
 }
 
-async function mySignature() {
-  return window.localStorage.token;
-}
 
-async function fetchJSON(url) {
-  const response = await fetch(`http://localhost:3000${url}`, {
-    method: "GET",
-    headers: {
-      "Authorization": "Bearer " + await mySignature(),
-      "Content-Type": "application/json",
-    },
-  });
-  return response.json();
-}
-
-async function fetchPostJSON(url, data) {
-  const response = await fetch(`http://localhost:3000${url}`, {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer " + await mySignature(),
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-  return response;
-}
 
 
 const submitForm = async () => {
@@ -191,8 +92,9 @@ onMounted(async () => {
   token.value = window.localStorage.token;
 });
 
-const formatDate = (timestamp) => {
-  const date = new Date(timestamp * 1000);
+const formatDate = (unixTimestamp) => {
+  const timestamp = unixTimestamp ? unixTimestamp * 1000 : new Date().getTime();
+  const date = new Date(timestamp);
   return `${date.toLocaleDateString()}, ${date.toLocaleTimeString()}`;
 };
 
@@ -235,6 +137,9 @@ const deleteScheduledMessage = async (id) => {
   fetchScheduledMessages();
 };
 </script>
+
+<template src="./App.html">
+</template>
 
 <style>
 </style>
