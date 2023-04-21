@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import { fetchJSON, fetchPostJSON } from "./utility";
+// greyed out / not in this file used values are used in App.html instead
+import { fetchJSON, fetchPostJSON, formatDate } from "./utility";
 import Siws from "./components/Siws.vue";
 
 
@@ -30,44 +31,6 @@ function resetForm() {
   messageId.value = null;
 }
 
-
-async function solanaWalletSignMessage(message) {
-  const m = message || "Sign for SMS Scheduler";
-  if (window.solana && window.solana.isPhantom) {
-    const solana = window.solana;
-    const message = new TextEncoder().encode(m);
-    const signature = await solana.request({
-      method: "signMessage",
-      params: {
-        message,
-        display: "hex",
-      },
-    });
-    return signature;
-  } else {
-    alert("Please install Phantom wallet to use this app.");
-    return null;
-  }
-}
-
-async function connectPhantomWallet() {
-  if (window.solana && window.solana.isPhantom) {
-    const solana = window.solana;
-    const connected = await solana.connect();
-    if (connected) {
-      console.log("Connected to Phantom wallet");
-      console.log("Public key:", solana.publicKey.toString());
-    } else {
-      console.error("Failed to connect to Phantom wallet");
-    }
-  } else {
-    alert("Please install Phantom wallet to use this app.");
-  }
-}
-
-
-
-
 const submitForm = async () => {
   const sendAtDate = new Date(sendAt.value);
   const sendAtTimestamp = Math.floor(sendAtDate.getTime() / 1000);
@@ -92,11 +55,7 @@ onMounted(async () => {
   token.value = window.localStorage.token;
 });
 
-const formatDate = (unixTimestamp) => {
-  const timestamp = unixTimestamp ? unixTimestamp * 1000 : new Date().getTime();
-  const date = new Date(timestamp);
-  return `${date.toLocaleDateString()}, ${date.toLocaleTimeString()}`;
-};
+
 
 const getLabelColor = (recurrence) => {
   switch (recurrence) {

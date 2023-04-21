@@ -24,3 +24,43 @@ export async function fetchJSON(url) {
     });
     return response;
   }
+
+  export function formatDate(unixTimestamp) {
+    const timestamp = unixTimestamp ? unixTimestamp * 1000 : new Date().getTime();
+    const date = new Date(timestamp);
+    return `${date.toLocaleDateString()}, ${date.toLocaleTimeString()}`;
+  }
+
+  async function solanaWalletSignMessage(message) {
+    const m = message || "Sign for SMS Scheduler";
+    if (window.solana && window.solana.isPhantom) {
+      const solana = window.solana;
+      const message = new TextEncoder().encode(m);
+      const signature = await solana.request({
+        method: "signMessage",
+        params: {
+          message,
+          display: "hex",
+        },
+      });
+      return signature;
+    } else {
+      alert("Please install Phantom wallet to use this app.");
+      return null;
+    }
+  }
+  
+  async function connectPhantomWallet() {
+    if (window.solana && window.solana.isPhantom) {
+      const solana = window.solana;
+      const connected = await solana.connect();
+      if (connected) {
+        console.log("Connected to Phantom wallet");
+        console.log("Public key:", solana.publicKey.toString());
+      } else {
+        console.error("Failed to connect to Phantom wallet");
+      }
+    } else {
+      alert("Please install Phantom wallet to use this app.");
+    }
+  }
