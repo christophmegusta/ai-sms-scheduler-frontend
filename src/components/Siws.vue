@@ -28,9 +28,11 @@ const signature = ref<string>();
 const showModal = ref(false);
 const token = ref("");
 
-const props = defineProps<{
-  token: Function;
-}>();
+const emits = defineEmits({
+    token: (token: string) => {
+        return typeof token === 'string';
+    },
+});
 
 
 onMounted(() => {
@@ -115,7 +117,7 @@ async function verifySignatureRemote() {
       token.value = data.token;
       // Store the token in local storage or memory for future authenticated requests
       localStorage.setItem('token', token.value);
-      props.token(token.value);
+      emits('token', token.value);
       swal("Success", "Verified and authenticated", "success");
     } else {
       swal("Error", data.message, "error");
@@ -128,7 +130,7 @@ async function verifySignatureRemote() {
 function signout() {
     localStorage.removeItem('token');
     token.value = '';
-    props.token(token.value);
+    emits('token', token.value);
     // swal("Success", "Signed out", "success");
 }
 
