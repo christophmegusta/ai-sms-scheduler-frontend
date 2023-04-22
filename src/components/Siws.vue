@@ -9,6 +9,8 @@ import {
   SolletWalletAdapter,
   SlopeWalletAdapter,
   Coin98WalletAdapter,
+  BraveWalletAdapter,
+  ExodusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { ref, onMounted } from "vue";
 const selectedWallet = ref();
@@ -19,6 +21,8 @@ const allWallets = ref([
   new SolletWalletAdapter(),
   new SlopeWalletAdapter(),
   new Coin98WalletAdapter(),
+  new BraveWalletAdapter(),
+  new ExodusWalletAdapter(),
 ]);
 const domain = window.location.host;
 const origin = window.location.origin;
