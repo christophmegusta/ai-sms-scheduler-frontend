@@ -1,5 +1,7 @@
 # ai sms scheduler frontend
 
+![Alt text](screenshot.jpg "App")
+
 ## setup
 
 install and build

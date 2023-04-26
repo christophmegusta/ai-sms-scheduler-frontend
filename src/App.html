@@ -3,27 +3,27 @@
   
     <form @submit.prevent="submitForm" @reset.prevent="resetForm" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium">Phone Number</label>
-        <input type="text" v-model="phone" placeholder="Phone Number" required class="block w-full border-gray-300 rounded-md" />
+        <label class="block text-left text-sm font-medium">Phone Number</label>
+        <input type="text" name="phone" v-model="phone" placeholder="Phone Number" required class="block w-full border-gray-300 rounded-md" />
       </div>
       <div>
-        <label class="block text-sm font-medium">Message</label>
-        <textarea v-model="message" placeholder="Message" required class="block w-full border-gray-300 rounded-md"></textarea>
+        <label class="block text-left text-sm font-medium">Message</label>
+        <textarea v-model="message" placeholder="Message" required rows="10" class="block w-full border-gray-300 rounded-md"></textarea>
       </div>
       <div>
-        <label class="block text-sm font-medium">Send At</label>
+        <label class="block text-left text-sm font-medium">Send At</label>
         <input type="datetime-local" v-model="sendAt" required class="block w-full border-gray-300 rounded-md" />
       </div>
       <div>
-        <label class="block text-sm font-medium">Time Window (in minutes)</label>
+        <label class="block text-left text-sm font-medium">Time Window (in minutes)</label>
         <input type="number" v-model.number="timeWindow" min="0" max="1440" step="1" required class="block w-full border-gray-300 rounded-md" />
       </div>
       <div>
-        <label class="block text-sm font-medium">Send Chance (in percent, 0 - 100)</label>
+        <label class="block text-left text-sm font-medium">Send Chance (in percent, 0 - 100)</label>
         <input type="number" v-model.number="sendChance" min="0" max="100" step="1" required class="block w-full border-gray-300 rounded-md" />
       </div>
       <div>
-        <label class="block text-sm font-medium">Recurrence</label>
+        <label class="block text-left text-sm font-medium">Recurrence</label>
         <select v-model="recurrence" required class="block w-full border-gray-300 rounded-md">
           <option value="once">Once</option>
           <option value="daily">Daily</option>
