@@ -16,7 +16,7 @@ npm run dev
 ```
 open browser http://localhost:5173/
 
-remember to start main server from ai-sms-scheduler repo. see README.
+remember to start main server from ai-sms-scheduler repo (https://github.com/christophmegusta/ai-sms-scheduler.git). see README.
 otherwise data cannot be loaded.
 
 
